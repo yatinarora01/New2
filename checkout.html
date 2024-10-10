@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 32px;
+            color: #343a40;
+        }
+
+        p {
+            font-size: 18px;
+            color: #6c757d;
+        }
+
+        input {
+            margin: 10px;
+            padding: 10px;
+            width: 220px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #qrcode-container {
+            margin-top: 20px;
+            padding: 20px;
+        }
+
+        input:focus {
+            border-color: #80bdff;
+            outline: none;
+            box-shadow: 0 0 5px rgba(128, 189, 255, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Checkout</h1>
+    <p>Please enter your details:</p>
+    <input type="text" id="name" placeholder="Your Name" required>
+    <input type="email" id="email" placeholder="Your Email" required>
+    <input type="text" id="phone" placeholder="Your Phone Number" required>
+    <button id="generate-qrcode" onclick="generatePaymentQRCode()">Generate QR Code</button>
+
+    <!-- Add the container for the QR code -->
+    <div id="qrcode-container"></div>
+
+    <script>
+        async function generatePaymentQRCode() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const totalAmount = localStorage.getItem('totalAmount') || 0;
+
+            if (!name || !email || !phone || !totalAmount) {
+                alert('Please fill in all fields!');
+                return;
+            }
+
+            // Prepare data for QR code
+            const qrData = {
+                name: name,
+                email: email,
+                phone: phone,
+                totalAmount: totalAmount,
+                message: 'Please pay this amount'
+            };
+
+            try {
+                const qrCodeUrl = `http://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(qrData.name + ' - ' + qrData.amount)}&size=200x200`;
+                document.getElementById('qrcode-container').innerHTML = `<img src="${qrCodeUrl}" alt="QR Code">`;
+
+                // Send the bill via email
+                const response = await fetch('http://localhost:3000/send-bill', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        products: JSON.parse(localStorage.getItem('products')),
+                        totalAmount: totalAmount
+                    })
+                });
+
+                // Check if response is OK
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to send bill');
+                }
+
+                const result = await response.json();
+                if (result.message === 'Bill sent successfully') {
+                    alert('Bill sent to your email successfully.');
+                }
+
+            } catch (error) {
+                console.error('Error generating QR code or sending email:', error);
+                alert('Error: ' + error.message);  // Show alert with error message
+            }
+        }
+    </script>
+
+</body>
+
+</html>

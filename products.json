@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Colors",
+    "price": 120,
+    "weight": 150
+  },
+  {
+    "name": "Lays",
+    "price": 40,
+    "weight": 55
+  }
+]

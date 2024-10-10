@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Success</title>
+</head>
+
+<body>
+    <div id="payment-message"></div>
+
+    <script>
+        // Parse query parameters from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const name = urlParams.get('name');
+        const totalAmount = urlParams.get('totalAmount');
+
+        // Display payment success message
+        const paymentMessage = document.getElementById('payment-message');
+        paymentMessage.innerHTML = `
+            <h1>Payment Done Successfully!</h1>
+            <p>Thank you, ${name}, for your payment of ₹${totalAmount}.</p>
+        `;
+    </script>
+</body>
+
+</html>
